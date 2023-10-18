@@ -1,23 +1,28 @@
-#include <FirebaseArduino.h> // We are using Firebase Real Time Database to store and retrieve all the data needed
-#include <ESP8266WiFi.h>     // Library for NodeMCU TCP/IP Stack
-#include <NTPClient.h>       // Library for NTP Server
-#include <WiFiUdp.h>         // NTP Server wants UDP Connection
-#include <SPI.h>             // MFRC522 uses SPI Protocol
-#include <MFRC522.h>         // Library for MFRC522 Card Raeder
-#include <Servo.h>           // Library for Servo Motor
+#include <SPI.h>
+#include <Servo.h>
+#include <MFRC522.h>
+#include <WiFiUdp.h>
+#include <ESP8266WiFi.h>
+#include <NTPClient.h>
+#include <FirebaseArduino.h>
+#include "arduino_secrets.h"
 
-#define FIREBASE_HOST  "Your Firebase Host without https://"       // Firebase Credentials
-#define FIREBASE_AUTH  "Your Firebase Authentication key"     
-#define WIFI_SSID      "Your Wifi Name"                            // Wifi Credentials
-#define WIFI_PASSWORD  "Your Wifi Password"
-#define utcOffset 19800                                            // UTC Offset for India is +5:30h which means 19800 seconds
+// secret configurations (wifi + firebase)
+#define WIFI_SSID      SECRET_WIFI_SSID
+#define WIFI_PASS      SECRET_WIFI_PASS
+#define FIREBASE_HOST  SECRET_FIREBASE_HOST
+#define FIREBASE_AUTH  SECRET_FIREBASE_AUTH
 
-#define servoPin D2            // Set Servo Pin
-#define greenLed D0            // Set Led Pins
-#define redLed   D1
-#define blueLed  D4
-#define slaveSelectPin D8      // Slave Select for MFRC522 (SDA Pin)
-#define resetPin       D3      // Reset for MFRC522 (RST Pin)
+// UTC Offset for India is +5:30h which means 19800 seconds
+#define UTC_OFFSET_INDIA_IN_SEC 19800
+
+// pins configurations (servo + led + mfrc522)
+const int redLed   = D1;
+const int greenLed = D0;
+const int blueLed  = D4;
+const int servoPin = D2;
+const int resetPin = D3;
+const int slaveSelectPin = D8;
 
 int angle=0;                   // Set angle to rotate servo 
 unsigned int cardCount=0;      // Holds index of the card if find in Database
@@ -28,10 +33,17 @@ byte readCard[4];              // Stores Card UID when card is readed Successful
 char str[32];                  // Temporary character array used to convert UID byte array into String
 String strUID;                 // Holds Card UID in String format 
 
-Servo myServo;                                                 // Servo Instance
-WiFiUDP udpClient;                                             // UDP Client Instance for NTP Server
-MFRC522 Reader(slaveSelectPin,resetPin);                       // MFRC522 Reader Instance
-NTPClient timeClient(udpClient, "pool.ntp.org", utcOffset);    // NTP Client Instance for connecting to NTP Server
+// Servo Motor Instance
+Servo myServo;                       
+
+// MFRC522 Reader Instance
+MFRC522 Reader(slaveSelectPin,resetPin);
+
+// UDP Client Instance for NTP Server
+WiFiUDP udpClient;
+
+// NTP Client Instance for connecting to NTP Server
+NTPClient timeClient(udpClient, "pool.ntp.org", UTC_OFFSET_INDIA_IN_SEC);
 
 void setup() {
   Serial.begin(115200);        // Initialize Serial Communication between NodeMCU and PC at 115200 bps
@@ -48,7 +60,7 @@ void setup() {
   myServo.write(0);            // Set the Servo to 0 degree
   
   WiFi.mode(WIFI_STA);                                         // Set the Wifi to Station Mode to connect to a Access Point
-  WiFi.begin(WIFI_SSID , WIFI_PASSWORD);                       // Connect to Acesss Point with SSID (Name) and Password
+  WiFi.begin(WIFI_SSID , WIFI_PASS);                           // Connect to Acesss Point with SSID (Name) and Password
   Serial.print("Connecting to " + String(WIFI_SSID));          // Wait till NodeMCU is being connected to Wifi
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
