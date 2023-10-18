@@ -1,14 +1,6 @@
 #include "app_main.h"
 #include "card_control.h"
 
-// Holds index of the card where Null String is present in Database
-unsigned int addCount = 0;
-
-// Stores Card UID when card is readed Successfully 
-static byte readCard[4];
-
-char str[32];                  // Temporary character array used to convert UID byte array into String
-
 // Convert byte array to String
 static void byteArrayToString(byte array[], unsigned int len, char buffer[]) {
   for (unsigned int i = 0; i < len; i++) {
@@ -28,20 +20,30 @@ bool getCardID() {                                           // Return true if C
     return false;
   }
 
-  Serial.print("The UID of the Scanned Card is : ");     // Now Card is Readed Successfully 
+  char str[32]; 
+  byte readCard[4]; 
 
   for (uint8_t i = 0; i < 4; i++) {                      // Get the UID and Convert it into String for further use
     readCard[i] = Reader.uid.uidByte[i]; 
     byteArrayToString(readCard, 4, str); 
     strUID = str;                                        // Holds the Card UID in String format
   }
+
+  Serial.print("The UID of the Scanned Card is : ");     // Now Card is Readed Successfully
   Serial.println(strUID);                                // Print the UID of the Scanned Card on Serial monitor
   Reader.PICC_HaltA();                                   // Stop Reading 
+  
   return true;
 }
 
-void addCard(String strUID) {                                      // Add card to Database
+// Add card to Database
+void addCard(String strUID) {
+  // Holds index of the card where Null String is present in Database
+  unsigned int addCount = 0;
+
+  // Hold total number of cards available in Database
   unsigned int totalCards = Firebase.getInt("TotalCards");
+
   for (unsigned int i=1; i<=totalCards; i++) {
     String cardUID = Firebase.getString("Card" + String(i) + "/UID");
     if(cardUID == "Null") {                                        // First Check for Card with UID as Null String ("Null")
@@ -63,7 +65,8 @@ void addCard(String strUID) {                                      // Add card t
   }
 }
 
-void removeCard(String strUID) {                                           // Remove card from Database where counter is set
+// Remove card from Database where counter is set
+void removeCard(String strUID) {
   Firebase.setString(("Card" + String(cardCount) + "/UID") , "Null");      // Just Place the Null as a String in Card UID
   Firebase.setInt(("Card" + String(cardCount) + "/Balance") , 0);          // Update balance to 0 INR 
   Firebase.setString("Card" + String(cardCount) + "/Entry/Date","YYYY-MM-DD");      // Reset the Previous Entry Status                                                       
@@ -72,14 +75,16 @@ void removeCard(String strUID) {                                           // Re
   Firebase.setString("Card" + String(cardCount) + "/Exit/Time","HH:MM:SS");
 }
 
-bool isMaster(String strUID) {                                     // Compare Scanned Card UID with Master Card UID
+// Compare Scanned Card UID with Master Card UID
+bool isMaster(String strUID) {
   if(strUID == Firebase.getString("MasterCardUID"))
     return true;                                                   // Return True if it is a Master Card else Return false
   else
     return false;
 }
 
-bool isCardFind(String strUID) {                                   // Compare Scanned Card UID with every Card UID in Database
+// Compare Scanned Card UID with every Card UID in Database
+bool isCardFind(String strUID) {
   unsigned int totalCards = Firebase.getInt("TotalCards");
   for (unsigned int i=1; i<=totalCards; i++) {
     String cardUID=Firebase.getString("Card" + String(i) + "/UID");

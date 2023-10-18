@@ -1,10 +1,8 @@
 #include "app_main.h"
-#include "user_access.h"
+#include "user_access.h"                  
 
-// Angle to rotate servo 
-static int angle = 0;                   
-
-static String getDate() {                                                                 // Getting Current Date from epoch time 
+// Getting Current Date from epoch time 
+static String getDate() {
   unsigned long epochTime = timeClient.getEpochTime();                   
   struct tm *ptm = gmtime ((time_t *)&epochTime);                    
   int monthDay = ptm->tm_mday;
@@ -14,11 +12,12 @@ static String getDate() {                                                       
   return currentDate;                                                              // Return Current date as String
 }
 
-void accessGranted() {                                  // Grant the Acess
+// Grant the Acess
+void accessGranted() {
   digitalWrite(greenLed,HIGH);                          // Green LED On
   Serial.println("Access Granted");                    
   Serial.println("Door Opening...");
-  for(angle = 0; angle < 180; angle++) {                // Rotate Servo from 0 degree to 180 degree
+  for(int angle = 0; angle < 180; angle++) {                // Rotate Servo from 0 degree to 180 degree
     myServo.write(angle);
     delay(15);
   }
@@ -26,7 +25,7 @@ void accessGranted() {                                  // Grant the Acess
   Serial.println("You may pass now");
   delay(7000);                                          // Close the door after 7 seconds      
   Serial.println("Door Locking...");
-  for(angle = 180; angle > 0; angle--) {                // Rotate the Servo from 180 degree to 0 degree
+  for(int angle = 180; angle > 0; angle--) {                // Rotate the Servo from 180 degree to 0 degree
     myServo.write(angle);
     delay(15);
   }
@@ -34,7 +33,8 @@ void accessGranted() {                                  // Grant the Acess
   digitalWrite(greenLed,LOW);                           // Green LED Off
 }
 
-void accessDenied() {                                   // Acess Denied , Either card is not valid or Insufficient Balance
+// Acess Denied , Either card is not valid or Insufficient Balance
+void accessDenied() {
   digitalWrite(redLed,HIGH);                            // RED LED On
   Serial.println("Access Denied");
   Serial.println("You can't go ahead");
@@ -45,7 +45,8 @@ void accessDenied() {                                   // Acess Denied , Either
   digitalWrite(redLed,LOW);                               // RED LED Off
 }
 
-void grantEntry() {                                      // Grant the Entry and push the current date & time to the Database
+// Grant the Entry and push the current date & time to the Database
+void grantEntry() {
    timeClient.update();                                  // Update the time client to fetch current date and time from NTP Server
    Firebase.setString(("Card" + String(cardCount) + "/Entry/Date") , getDate());                      // Push Current Date in YYYY-MM-DD format
    Firebase.setString(("Card" + String(cardCount) + "/Entry/Time") , timeClient.getFormattedTime());  // Push Current Time in HH:MM:SS   format
@@ -55,7 +56,8 @@ void grantEntry() {                                      // Grant the Entry and 
    Serial.println();   
 }
 
-void grantExit() {                                       // Grant the Exit and Push the current date & time to Database
+// Grant the Exit and Push the current date & time to Database
+void grantExit() {
   timeClient.update();                                   // Update the timer client to fetch current date and time from NTP Server
   Firebase.setString(("Card" + String(cardCount) + "/Exit/Date") , getDate());                        // Push Current Date in YYYY-MM-DD format
   Firebase.setString(("Card" + String(cardCount) + "/Exit/Time") , timeClient.getFormattedTime());    // Push Current Time in HH:MM:SS format
