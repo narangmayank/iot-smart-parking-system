@@ -7,7 +7,9 @@
 #include <FirebaseArduino.h>
 #include "pins_config.h"
 
-void cycleLed();
+void setupWifi();
+void appMainInit();
+void cycleLed(int count, int delay_ms);
 
 extern String strUID;
 extern unsigned int cardCount;
