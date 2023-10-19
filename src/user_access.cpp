@@ -1,4 +1,5 @@
 #include "app_main.h"
+#include "business_logic.h"
 #include "user_access.h"                  
 
 // function to get the date from epoch time
@@ -50,7 +51,7 @@ void grantEntry() {
   Firebase.setString(("Card" + String(cardCount) + "/Entry/Time") , timeClient.getFormattedTime());
   Firebase.setBool(("Card" + String(cardCount) + "/IsVehicleIn") , true);
 
-  Serial.println("Please Park your vehicle inside");
+  Serial.println("Please park your vehicle inside!");
   Serial.println();  
 
   // open the door lock
@@ -65,36 +66,12 @@ void grantExit() {
   // Mark the exit in the database
   Firebase.setString(("Card" + String(cardCount) + "/Exit/Date") , getDate());
   Firebase.setString(("Card" + String(cardCount) + "/Exit/Time") , timeClient.getFormattedTime());
-  
-  //
-  // Here comes our business logic
-  // It's very simple just charge as per pay as you use policy
-  // Logic: Charge 30INR per min.
-  //
-
-  String str=Firebase.getString("Card" + String(cardCount) + "/Entry/Time");
-  String str1=str;
-  str=str.substring(3,5);
-  int entryTime=str.toInt();
-  int exitTime=timeClient.getMinutes();
-  Serial.println("Your Entry Time is : " + str1 + " in HH:MM:SS Format");
-  Serial.println("Your Exit  Time is : " + timeClient.getFormattedTime() + " in HH:MM:SS Format");
-  
-  // Generate the new balance status
-  int currentBalance = Firebase.getInt("Card" + String(cardCount) + "/Balance");
-  int charge = (exitTime - entryTime) * 30;
-  int newBalance = currentBalance - charge;
-
-  // Update the card status back to database
-  Firebase.setInt(("Card" + String(cardCount) + "/Balance") , newBalance);
   Firebase.setBool(("Card" + String(cardCount) + "/IsVehicleIn") , false);
+  
+  // fuzzy business logic to charge some ammount :)
+  fuzzy_business_logic();
 
-  Serial.println("Your Current Balance is : " + String(currentBalance) + " INR");
-  Serial.println("Sur Charge is : " + String(charge) + " INR");
-  Serial.println("Your New Balance is : " + String(newBalance) + " INR");
-
-  Serial.println("Thank you for choosing our service");
-  Serial.println("We wish you a great day ahead");
+  Serial.println("Thank you for parking you vehicle!");
   Serial.println();
 
   // open the door lock
