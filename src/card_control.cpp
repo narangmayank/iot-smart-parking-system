@@ -1,7 +1,7 @@
 #include "app_main.h"
 #include "card_control.h"
 
-// Convert byte array to String
+// function to convert byte array to string
 static void byteArrayToString(byte array[], unsigned int len, char buffer[]) {
   for (unsigned int i = 0; i < len; i++) {
     byte nib1 = (array[i] >> 4) & 0x0F;
@@ -12,31 +12,34 @@ static void byteArrayToString(byte array[], unsigned int len, char buffer[]) {
   buffer[len * 2] = '\0';
 }
 
-bool getCardID() {                                           // Return true if Card is Scanned Successfully o/w returns false
-  if (!Reader.PICC_IsNewCardPresent()) {                 // Check for the new Card
+// function to get the card UID
+bool getCardID() {
+  if (!Reader.PICC_IsNewCardPresent()) {
     return false;
   }
-  if (!Reader.PICC_ReadCardSerial()) {                   // Now Card arrives, wair for it to be read Successfully
+  if (!Reader.PICC_ReadCardSerial()) {
     return false;
   }
 
   char str[32]; 
   byte readCard[4]; 
 
-  for (uint8_t i = 0; i < 4; i++) {                      // Get the UID and Convert it into String for further use
+  // Get the UID and Convert it into String for further use
+  for (uint8_t i = 0; i < 4; i++) {
     readCard[i] = Reader.uid.uidByte[i]; 
     byteArrayToString(readCard, 4, str); 
-    strUID = str;                                        // Holds the Card UID in String format
+    strUID = str;
   }
 
-  Serial.print("The UID of the Scanned Card is : ");     // Now Card is Readed Successfully
-  Serial.println(strUID);                                // Print the UID of the Scanned Card on Serial monitor
-  Reader.PICC_HaltA();                                   // Stop Reading 
-  
+  // Print the card UID for refrence
+  Serial.print("The UID of the Scanned Card is : ");     
+  Serial.println(strUID);
+  Reader.PICC_HaltA();
+
   return true;
 }
 
-// Add card to Database
+// function to add card to the database
 void addCard(String strUID) {
   // Holds index of the card where Null String is present in Database
   unsigned int addCount = 0;
@@ -44,54 +47,65 @@ void addCard(String strUID) {
   // Hold total number of cards available in Database
   unsigned int totalCards = Firebase.getInt("TotalCards");
 
+  // Check if Card with UID exists
   for (unsigned int i=1; i<=totalCards; i++) {
     String cardUID = Firebase.getString("Card" + String(i) + "/UID");
-    if(cardUID == "Null") {                                        // First Check for Card with UID as Null String ("Null")
-      addCount=i;                                                  // If Null UID find then Set the counter there
+    if(cardUID == "Null") {
+      addCount=i;
       break;
     }
   }
-  if(addCount > 0) {                                                        // If Counter is set then add the card there
-    Firebase.setString(("Card" + String(addCount) + "/UID") , strUID);      // At First set the Card UID to Scanned Card UID
-    Firebase.setInt(("Card" + String(addCount) + "/Balance") , 100);        // Secondly, update the balance to 100 INR (New User Charge)
-    addCount=0;                                                             // Reset the  Add Counter 
+
+  if(addCount > 0) {  
+    // Use the unused card from the database and make the entry
+    Firebase.setString(("Card" + String(addCount) + "/UID") , strUID);
+
+    // Also give the bonus 100 INR
+    Firebase.setInt(("Card" + String(addCount) + "/Balance") , 100);
   }
-  else {                                                                    // Else make a New Entry in Database right after previous Card
-    FirebaseObject obj(Firebase.get("CardTemplate"));                       // At First Get the Card Template and Copy it
+  else {
+    // Add a new card to the database using card template
+    FirebaseObject obj(Firebase.get("CardTemplate"));
     Firebase.set(("Card" + String(totalCards+1)) , obj.getJsonVariant());  
-    Firebase.setString(("Card" + String(totalCards+1) + "/UID") , strUID);  // Now Set the Card UID to Scanned Card UID
-    Firebase.setInt(("Card" + String(totalCards+1) + "/Balance") , 100);    // Update the balance to 100 INR (New User Charge)
-    Firebase.setInt("TotalCards" , totalCards+1);                           // Update the TotalCards
+    Firebase.setString(("Card" + String(totalCards+1) + "/UID") , strUID);
+    Firebase.setInt("TotalCards" , totalCards+1);   
+
+    // Also give the bonus 100 INR
+    Firebase.setInt(("Card" + String(totalCards+1) + "/Balance") , 100);                        
   }
 }
 
-// Remove card from Database where counter is set
+// function to remove card from the database
 void removeCard(String strUID) {
-  Firebase.setString(("Card" + String(cardCount) + "/UID") , "Null");      // Just Place the Null as a String in Card UID
-  Firebase.setInt(("Card" + String(cardCount) + "/Balance") , 0);          // Update balance to 0 INR 
-  Firebase.setString("Card" + String(cardCount) + "/Entry/Date","YYYY-MM-DD");      // Reset the Previous Entry Status                                                       
+  // Push the default values in the database
+  Firebase.setString(("Card" + String(cardCount) + "/UID") , "Null");
+  Firebase.setInt(("Card" + String(cardCount) + "/Balance") , 0);
+  Firebase.setString("Card" + String(cardCount) + "/Entry/Date","YYYY-MM-DD");                                                       
   Firebase.setString("Card" + String(cardCount) + "/Entry/Time","HH:MM:SS");
-  Firebase.setString("Card" + String(cardCount) + "/Exit/Date","YYYY-MM-DD");       // Reset the Previous Exit Status
+  Firebase.setString("Card" + String(cardCount) + "/Exit/Date","YYYY-MM-DD");
   Firebase.setString("Card" + String(cardCount) + "/Exit/Time","HH:MM:SS");
 }
 
-// Compare Scanned Card UID with Master Card UID
+// function to check if the card is Master card
 bool isMaster(String strUID) {
   if(strUID == Firebase.getString("MasterCardUID"))
-    return true;                                                   // Return True if it is a Master Card else Return false
+    return true;
   else
     return false;
 }
 
-// Compare Scanned Card UID with every Card UID in Database
+// function to check if the card is there in database
 bool isCardFind(String strUID) {
   unsigned int totalCards = Firebase.getInt("TotalCards");
+
   for (unsigned int i=1; i<=totalCards; i++) {
     String cardUID=Firebase.getString("Card" + String(i) + "/UID");
     if( strUID == cardUID) {
-      cardCount=i;                                                 // Set the counter to the position where card is find
-      return true;                                                 // Return True if Scanned card is there in Database else Return false
+      // Set the counter to the position where card is find
+      cardCount=i;
+      return true;
     }
   }
+
   return false;
 }
