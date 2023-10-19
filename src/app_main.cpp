@@ -42,38 +42,10 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   Serial.println();
-  SPI.begin();                
-  Reader.PCD_Init();  
-  
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID , WIFI_PASS);
-
-  Serial.println();
-  Serial.print("Connecting to " + String(WIFI_SSID));
-
-  // wait till chip is being connected to wifi  (Blocking Mode)
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(250);
-  }
-
-  // now it is connected to the access point just print the ip assigned to chip
-  Serial.println();
-  Serial.print("Connected to " + String(WIFI_SSID) + ", Got IP address : ");
-  Serial.println(WiFi.localIP());
-
-  myServo.attach(servoPin);   
-  pinMode(greenLed,OUTPUT);    
-  pinMode(redLed , OUTPUT);
-  pinMode(blueLed, OUTPUT);
-
-  myServo.write(0); 
-  digitalWrite(greenLed,LOW);  
-  digitalWrite(redLed , LOW);
-  digitalWrite(blueLed, LOW); 
-
-  timeClient.begin();
-  Firebase.begin(FIREBASE_HOST , FIREBASE_AUTH);
+ 
+  setupWifi();
+  appMainInit();
+  cycleLed(2, 200);
 
   Serial.println("|************ IoT Smart Park System ************|");
   Serial.println();
@@ -120,9 +92,7 @@ void setup() {
     Serial.println();
     
     // Visualize the Initialization by cycle the LED's Blinks
-    cycleLed();
-    cycleLed();
-    cycleLed();
+    cycleLed(4, 200);
   }
 }
 
@@ -219,22 +189,74 @@ void loop() {
 }
 
 // function to cycle the leds
-void cycleLed() {              
-  // Green LED On for 200 us                             
-  digitalWrite(greenLed, HIGH);
-  digitalWrite(redLed,   LOW );   
-  digitalWrite(blueLed,  LOW );   
-  delay(200);
+void cycleLed(int count, int delay_ms) {   
+  for(int i=0; i<count; i++) {
+    // Green LED On for 200 us                             
+    digitalWrite(greenLed, HIGH);
+    digitalWrite(redLed,   LOW );   
+    digitalWrite(blueLed,  LOW );   
+    delay(delay_ms);
 
-  // Blue LED On for 200 us
-  digitalWrite(greenLed, LOW );                              
-  digitalWrite(redLed,   LOW );  
-  digitalWrite(blueLed,  HIGH);  
-  delay(200);
+    // Blue LED On for 200 us
+    digitalWrite(greenLed, LOW );                              
+    digitalWrite(redLed,   LOW );  
+    digitalWrite(blueLed,  HIGH);  
+    delay(delay_ms);
 
-  // Red LED On for 200 us
-  digitalWrite(greenLed, LOW );   
-  digitalWrite(redLed,   HIGH); 
-  digitalWrite(blueLed,  LOW );   
-  delay(200);
+    // Red LED On for 200 us
+    digitalWrite(greenLed, LOW );   
+    digitalWrite(redLed,   HIGH); 
+    digitalWrite(blueLed,  LOW );   
+    delay(delay_ms);
+  } 
+}
+
+// function to setup the wifi with predefined credentials
+void setupWifi() {
+  // set the wifi to station mode to connect to a access point
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID , WIFI_PASS);
+
+  Serial.println();
+  Serial.print("Connecting to " + String(WIFI_SSID));
+
+  // wait till chip is being connected to wifi  (Blocking Mode)
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(250);
+  }
+
+  // now it is connected to the access point just print the ip assigned to chip
+  Serial.println();
+  Serial.print("Connected to " + String(WIFI_SSID) + ", Got IP address : ");
+  Serial.println(WiFi.localIP());
+}
+
+// function to initiaize the main app
+void appMainInit()
+{
+  //
+  // MFRC522 Reader is connected via SPI
+  // initialize the MFRC522 Card Reader
+  //
+  SPI.begin();                
+  Reader.PCD_Init();     
+
+  // setup the pins (servo + led)
+  myServo.attach(servoPin);   
+  pinMode(greenLed,OUTPUT);    
+  pinMode(redLed , OUTPUT);
+  pinMode(blueLed, OUTPUT);
+
+  // default configurations (servo + led)
+  myServo.write(0); 
+  digitalWrite(greenLed,LOW);  
+  digitalWrite(redLed , LOW);
+  digitalWrite(blueLed, LOW); 
+
+  // sync the current time from SNTP Server
+  timeClient.begin();
+
+  // Atlast. Connect to Firebase using Host and Authentication key
+  Firebase.begin(FIREBASE_HOST , FIREBASE_AUTH);
 }
