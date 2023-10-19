@@ -3,7 +3,7 @@
 Early prototype of the IoT enabled smart parking system.
 
 <div>
-    <img alt="Smart Parking Schematic" src="The_Hardware/Fritzing/SmartParking_Schematic.png" />
+    <img alt="Smart Parking Schematic" src="hardware/Fritzing/SmartParking_WiringDiagram.png" />
 </div>
 
 ## Features :-
