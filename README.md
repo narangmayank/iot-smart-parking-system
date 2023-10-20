@@ -32,7 +32,7 @@ Please refer the [wiring diagram](./hardware/Fritzing/SmartParking_WiringDiagram
 
 ## Firebase Login :-
 
-Please head over to [firebase](https://firebase.google.com/) and create the account if you don't have one. Once you're logged in create a real time database for data storage/retrieval in a real time. Please collect the firebase host and auth credentials and provide to the code as described in project configurations below.
+Please head over to [firebase](https://firebase.google.com/) sign up with your account and create a project if you don't have one. Once you've project onboard, create a real time database for data storage/retrieval in a real time. Please collect the [firebase host](./img/firebase_realtime_db.png) and [authentication key](./img/firebase_project_api_key.png) and provide to the code as described in project configurations below.
 
 ## Project Configurations
 
