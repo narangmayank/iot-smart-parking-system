@@ -1,9 +1,9 @@
 #pragma once
 
 // pins configurations (servo + led + mfrc522)
-#define redLed   D1
-#define greenLed D0
-#define blueLed  D4
-#define servoPin D2
-#define resetPin D3
-#define slaveSelectPin D8
+#define RED_LED   D1
+#define GREEN_LED D0
+#define BLUE_LED  D4
+#define SERVO_PIN D2
+#define MFRC522_RESET_PIN        D3
+#define MFRC522_SLAVE_SELECT_PIN D8

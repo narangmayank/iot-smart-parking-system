@@ -16,7 +16,7 @@ static String getDate() {
 // function to open the door lock
 static void openDoorLock() {
   // Indicate the status by Green LED ON
-  digitalWrite(greenLed,HIGH);                          
+  digitalWrite(GREEN_LED, HIGH);                          
   Serial.println("Access Granted");   
 
   Serial.println("Door Opening...");
@@ -38,7 +38,7 @@ static void openDoorLock() {
   }
 
   Serial.println("Door Locked");
-  digitalWrite(greenLed,LOW);
+  digitalWrite(GREEN_LED, LOW);
 }
 
 // function to grant the entry
@@ -81,7 +81,7 @@ void grantExit() {
 // function to deny the access
 void accessDenied() {
   // Indicate the status by Red LED ON
-  digitalWrite(redLed,HIGH);
+  digitalWrite(RED_LED, HIGH);
 
   Serial.println("Access Denied");
   Serial.println("You can't go ahead");
@@ -90,5 +90,5 @@ void accessDenied() {
   delay(1000);
 
   Serial.println();
-  digitalWrite(redLed,LOW);
+  digitalWrite(RED_LED, LOW);
 }

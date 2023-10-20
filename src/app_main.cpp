@@ -21,7 +21,7 @@
 // UTC Offset for India is +5:30h which means 19800 seconds
 #define UTC_OFFSET_INDIA_IN_SEC 19800
 
-unsigned int cardCount = 0;      // Holds index of the card if find in Database
+unsigned int cardCount = 0;    // Holds index of the card if find in Database
 bool readSuccess = false;      // Boolean variable to check whether card is readed Successfully or not
 bool updateMode  = false;      // Boolean variable to switch between Update Mode & Regular Mode
 String strUID;                 // Holds Card UID in String format 
@@ -36,7 +36,7 @@ NTPClient timeClient(udpClient, "pool.ntp.org", UTC_OFFSET_INDIA_IN_SEC);
 Servo myServo;                       
 
 // MFRC522 Reader Instance
-MFRC522 Reader(slaveSelectPin,resetPin);
+MFRC522 Reader(MFRC522_SLAVE_SELECT_PIN,MFRC522_RESET_PIN);
 
 void setup() {
   // put your setup code here, to run once:
@@ -65,11 +65,14 @@ void setup() {
     Serial.println("Please Scan a Card to define Master Card...");
 
     do {       
-      readSuccess = getCardID();                          
-      digitalWrite(blueLed,HIGH);  
-      delay(300);
-      digitalWrite(blueLed,LOW);
-      delay(300);
+      readSuccess = getCardID();
+
+      // Visualize the no master status by blinking Blue LED super quickly      
+      digitalWrite(BLUE_LED, HIGH);  
+      delay(250);
+      digitalWrite(BLUE_LED, LOW);
+      delay(250);
+
     } while(!readSuccess); // Block till Card read  
 
     // Card readed successfully, So make it Master Card and push all the neccessary data  
@@ -98,29 +101,27 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+  //
+  // Main loop first will wait for any card to be scanned
+  // Then based on card (Master Card or Normal Card) it will enter into desired mode 
+  // Then based on mode the code will do the needfull :)
+  //
+
   do {
-    readSuccess = getCardID();                   
-    if(updateMode) {
-      // Visualize Update Mode by Turn Off all the LED's                         
-      digitalWrite(greenLed,LOW);
-      digitalWrite(redLed,  LOW);
-      digitalWrite(blueLed, LOW);
-    }
-    else {
-      // Visualize Regular Mode by Turn on only Blue LED
-      digitalWrite(greenLed,LOW);              
-      digitalWrite(redLed,  LOW);
-      digitalWrite(blueLed,HIGH);
-    }
+    readSuccess = getCardID();
     delay(200);
-  }while(!readSuccess); // Block till Card read  
+  }while(!readSuccess); // Block till Card read
 
   //
-  // Update Mode : You can add/remove the cards.
-  // Regular Mode : You can mark the entry/exit in the paring.  
+  // Update Mode : You can manage the cards.
+  // Regular Mode : You can mark the entry/exit in the parikng.
   //
 
-  if(updateMode) {                                 
+  if(updateMode) {     
+    // Visualize Update Mode by Turn OFF Blue LED
+    digitalWrite(BLUE_LED, LOW);
+
     if(isMaster(strUID)) {
       // Exit the Update Mode if Master Card is Scanned again                         
       Serial.println("Hey Master!");
@@ -134,32 +135,35 @@ void loop() {
         Serial.println("I know this card , removing...");
 
         // Visualize it by making Red LED On till the Card is removed from database  
-        digitalWrite(redLed,HIGH);   
+        digitalWrite(RED_LED, HIGH);   
         removeCard(strUID);
         Serial.println("Card Removed");
         Serial.println("Scan a unknown card to Add to Database or Scan a known card to Remove from Database");
         Serial.println("Scan Master Card again to exit Update mode");
         Serial.println();
-        digitalWrite(redLed,LOW);
+        digitalWrite(RED_LED, LOW);
       }
       else {
         // If scanned card is not in the databse then add it     
         Serial.println("I don't know this card , adding..."); 
 
         // Visualize it by making Green LED On till the card is added to database                      
-        digitalWrite(greenLed,HIGH);              
+        digitalWrite(GREEN_LED, HIGH);              
         addCard(strUID);
         Serial.println("Card Added");
         Serial.println("Scan a unknown card to Add to Database or Scan a known card to Remove from Database");
         Serial.println("Scan Master Card again to exit Update mode");
         Serial.println();
-        digitalWrite(greenLed,LOW);
+        digitalWrite(GREEN_LED, LOW);
       }
     }
   }
   else {
+    // Visualize Regular Mode by Turn ON Blue LED        
+    digitalWrite(BLUE_LED,  HIGH);
+
     if(isMaster(strUID)) {
-      // If Scanned Card is Master Card, Step into Update Mode 
+      // If scanned card is Master Card, Step into Update Mode 
       Serial.println("Hey Master!");
       Serial.println("Entering Update Mode...");          // For Debugging Purposes
       Serial.println("Scan a unknown card to Add to Database or Scan a known card to Remove from Database");
@@ -168,20 +172,33 @@ void loop() {
       updateMode = true;
     }
     else {
-      // If Scanned Card is Valid and Balance in the Card is atleast 30 INR then Grant the Entry and Exit       
-      if(isCardFind(strUID)==true && Firebase.getInt("Card" + String(cardCount) + "/Balance") >= 30) {
-        // Check for the status of the Vehicle
-        if(Firebase.getBool("Card" + String(cardCount) + "/IsVehicleIn")) { 
-          // Vehicle is inside, Grant the Exit      
-          grantExit();
+      // If scanned card exists then check for the balance and grant the extry     
+      if(isCardFind(strUID)==true) {
+
+        //
+        // Allow only if card have some threshhold (Above 30 INR)
+        // We will let the card be in negative if in case the person spends more time.
+        //
+
+        if(Firebase.getInt("Card" + String(cardCount) + "/Balance") >= 30) {
+          if(Firebase.getBool("Card" + String(cardCount) + "/IsVehicleIn")) {
+            // Vehicle is already inside, Grant the Exit      
+            grantExit();
+          }
+          else {
+            // Vehicle is not inside, Grant the Entry
+            grantEntry();
+          }
         }
         else {
-          // Vehicle is not inside, Grant the Entry
-          grantEntry();
-        }   
-      }                             
+          // Card doesn't have sufficient Balance
+          Serial.println("Card doesn't have sufficient balance, Please recharge it.");
+          accessDenied();
+        }
+      } 
       else {
-        // Either Card is not valid or Insufficient Balance
+        // Card doesn't exists
+        Serial.println("Card doesn't exists, Please add it.");
         accessDenied();
       }
     }
@@ -192,21 +209,21 @@ void loop() {
 void cycleLed(int count, int delay_ms) {   
   for(int i=0; i<count; i++) {
     // Green LED On for 200 us                             
-    digitalWrite(greenLed, HIGH);
-    digitalWrite(redLed,   LOW );   
-    digitalWrite(blueLed,  LOW );   
+    digitalWrite(GREEN_LED, HIGH);
+    digitalWrite(RED_LED,   LOW );   
+    digitalWrite(BLUE_LED,  LOW );   
     delay(delay_ms);
 
     // Blue LED On for 200 us
-    digitalWrite(greenLed, LOW );                              
-    digitalWrite(redLed,   LOW );  
-    digitalWrite(blueLed,  HIGH);  
+    digitalWrite(GREEN_LED, LOW );                              
+    digitalWrite(RED_LED,   LOW );  
+    digitalWrite(BLUE_LED,  HIGH);  
     delay(delay_ms);
 
     // Red LED On for 200 us
-    digitalWrite(greenLed, LOW );   
-    digitalWrite(redLed,   HIGH); 
-    digitalWrite(blueLed,  LOW );   
+    digitalWrite(GREEN_LED, LOW );   
+    digitalWrite(RED_LED,   HIGH); 
+    digitalWrite(BLUE_LED,  LOW );   
     delay(delay_ms);
   } 
 }
@@ -243,16 +260,16 @@ void appMainInit()
   Reader.PCD_Init();     
 
   // setup the pins (servo + led)
-  myServo.attach(servoPin);   
-  pinMode(greenLed,OUTPUT);    
-  pinMode(redLed , OUTPUT);
-  pinMode(blueLed, OUTPUT);
+  myServo.attach(SERVO_PIN);   
+  pinMode(GREEN_LED, OUTPUT);    
+  pinMode(RED_LED ,  OUTPUT);
+  pinMode(BLUE_LED,  OUTPUT);
 
   // default configurations (servo + led)
   myServo.write(0); 
-  digitalWrite(greenLed,LOW);  
-  digitalWrite(redLed , LOW);
-  digitalWrite(blueLed, LOW); 
+  digitalWrite(GREEN_LED, LOW);  
+  digitalWrite(RED_LED ,  LOW);
+  digitalWrite(BLUE_LED,  LOW); 
 
   // sync the current time from SNTP Server
   timeClient.begin();
