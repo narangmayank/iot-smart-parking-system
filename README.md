@@ -55,6 +55,8 @@ Open the [arduino_secrets.h](./include/arduino_secrets.h) file.
 
 We strongly recommend to install the specified tagged versions of the libraries and Core SDK. Just hit the link above to see the exact versions for easy compilation.
 
+**Note:** If you're installing `Espressif8266` platform in PIO Home consider installing `v2.6.3`.
+
 ## Build Flash Monitor
 
 You can build, flash and monitor the app via platform io vs code edition as usual :)

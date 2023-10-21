@@ -83,7 +83,7 @@ void setup() {
 
     // Card Template
     Firebase.setInt("CardTemplate/Balance", 0);        
-    Firebase.setString("CardTemplate/UID", "");                                      
+    Firebase.setString("CardTemplate/UID", "XXXXXXXX");                                      
     Firebase.setString("CardTemplate/Entry/Date", "YYYY-MM-DD");                                                       
     Firebase.setString("CardTemplate/Entry/Time", "HH:MM:SS");
     Firebase.setString("CardTemplate/Exit/Date", "YYYY-MM-DD");
