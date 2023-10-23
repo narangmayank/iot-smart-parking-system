@@ -60,3 +60,13 @@ We strongly recommend to install the specified tagged versions of the libraries 
 ## Build Flash Monitor
 
 You can build, flash and monitor the app via platform io vs code edition as usual :)
+
+## TODO
+
+I'm dropping down few known todo's, if you have any such in mind please feel free to add in the list
+
+- Add ESP32 Support
+- Add Wokwi Simulation Support
+- Implementing a menu interface for Master login
+- Location based parking services
+- Web App for the user
