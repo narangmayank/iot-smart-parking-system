@@ -4,6 +4,7 @@ Early prototype of the IoT enabled smart parking system.
 
 <div>
     <img alt="Smart Parking Schematic" src="hardware/Fritzing/SmartParking_WiringDiagram.png" />
+    <img alt="Smart Parking Database" src="img/firebase_realtime_db.png" />
 </div>
 
 ## Features :-
@@ -11,8 +12,8 @@ Early prototype of the IoT enabled smart parking system.
 - One Mater login to manage all the user operations.
 - Check for availability of the parking slot in real time.
 - Dynamically deduct the charge from the user card based on the usage.
+- Fuzzy business logic that can be expanded as per the scale of the project.
 - Real time data view that let's other apps pull this information to do something usefull :)
-- Fuzzy business logic that can be expanded as per the scale of the project
 
 ## Hardware :-
 
@@ -34,6 +35,17 @@ Please refer the [wiring diagram](./hardware/Fritzing/SmartParking_WiringDiagram
 
 Please head over to [firebase](https://firebase.google.com/) sign up with your account and create a project if you don't have one. Once you've project onboard, create a real time database for data storage/retrieval in a real time. Please collect the [firebase host](./img/firebase_realtime_db.png) and [authentication key](./img/firebase_project_api_key.png) and provide to the code as described in project configurations below.
 
+## Dependencies :-
+- [MFRC522](https://github.com/miguelbalboa/rfid/tree/1.4.10)
+- [NTPClient](https://github.com/arduino-libraries/NTPClient/tree/3.2.1)
+- [ArduinoJson](https://github.com/bblanchon/ArduinoJson/tree/v5.13.4)
+- [FirebaseArduino](https://github.com/FirebaseExtended/firebase-arduino/tree/v0.3) 
+- [ESP8266 Core SDK](https://github.com/esp8266/Arduino/tree/2.7.4)
+
+We strongly recommend to install the specified tagged versions of the libraries and Core SDK. Just hit the link above to see the exact versions for easy compilation.
+
+**Note:** If you're installing `Espressif8266` platform in PIO Home consider installing `v2.6.3`.
+
 ## Project Configurations
 
 Open the [arduino_secrets.h](./include/arduino_secrets.h) file.
@@ -46,24 +58,13 @@ Open the [arduino_secrets.h](./include/arduino_secrets.h) file.
   - Set `SECRET_FIREBASE_HOST`
   - Set `SECRET_FIREBASE_AUTH`
 
-## Dependencies :-
-- [MFRC522](https://github.com/miguelbalboa/rfid/tree/1.4.10)
-- [NTPClient](https://github.com/arduino-libraries/NTPClient/tree/3.2.1)
-- [ArduinoJson](https://github.com/bblanchon/ArduinoJson/tree/v5.13.4)
-- [FirebaseArduino](https://github.com/FirebaseExtended/firebase-arduino/tree/v0.3) 
-- [ESP8266 Core SDK](https://github.com/esp8266/Arduino/tree/2.7.4)
-
-We strongly recommend to install the specified tagged versions of the libraries and Core SDK. Just hit the link above to see the exact versions for easy compilation.
-
-**Note:** If you're installing `Espressif8266` platform in PIO Home consider installing `v2.6.3`.
-
 ## Build Flash Monitor
 
 You can build, flash and monitor the app via platform io vs code edition as usual :)
 
 ## TODO
 
-I'm dropping down few known todo's, if you have any such in mind please feel free to add in the list
+I'm dropping down few known todo's, if you have any such in mind please feel free to add them to the list
 
 - Add ESP32 Support
 - Add Wokwi Simulation Support
