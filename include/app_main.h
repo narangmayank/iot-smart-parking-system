@@ -7,6 +7,11 @@
 #include <FirebaseArduino.h>
 #include "pins_config.h"
 
+#define FIRMWARE_VERSION "1.0.0"
+#define HARDWARE_VERSION "rev_1"
+
+#define ONE_DOLLAR_INR_PRICE 84
+ 
 void setupWifi();
 void appMainInit();
 void cycleLed(int count, int delay_ms);

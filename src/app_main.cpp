@@ -49,6 +49,8 @@ void setup() {
 
   Serial.println("|************ IoT Smart Park System ************|");
   Serial.println();
+  Serial.println("Fw Version : " + String(FIRMWARE_VERSION) + " | Hw Version : " + String(HARDWARE_VERSION));
+  Serial.println();
 
   // Desciption of our Smart Park System 
   Serial.println("It works in two modes i.e (Regular Mode[Blue LED On] and Update Mode[Blue LED Off])");
@@ -176,11 +178,11 @@ void loop() {
       if(isCardFind(strUID)==true) {
 
         //
-        // Allow only if card have some threshhold (Above 30 INR)
+        // Allow only if card have some threshhold (Above 1$)
         // We will let the card be in negative if in case the person spends more time.
         //
 
-        if(Firebase.getInt("Card" + String(cardCount) + "/Balance") >= 30) {
+        if(Firebase.getInt("Card" + String(cardCount) + "/Balance") >= ONE_DOLLAR_INR_PRICE) {
           if(Firebase.getBool("Card" + String(cardCount) + "/IsVehicleIn")) {
             // Vehicle is already inside, Grant the Exit      
             grantExit();

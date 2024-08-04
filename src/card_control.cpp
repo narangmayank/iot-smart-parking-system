@@ -60,8 +60,8 @@ void addCard(String strUID) {
     // Use the unused card from the database and make the entry
     Firebase.setString(("Card" + String(addCount) + "/UID") , strUID);
 
-    // Also give the bonus 100 INR
-    Firebase.setInt(("Card" + String(addCount) + "/Balance") , 100);
+    // Giveaway initial balance of 10$
+    Firebase.setInt(("Card" + String(addCount) + "/Balance") , 10*ONE_DOLLAR_INR_PRICE);
   }
   else {
     // Add a new card to the database using card template
@@ -70,8 +70,8 @@ void addCard(String strUID) {
     Firebase.setString(("Card" + String(totalCards+1) + "/UID") , strUID);
     Firebase.setInt("TotalCards" , totalCards+1);   
 
-    // Also give the bonus 100 INR
-    Firebase.setInt(("Card" + String(totalCards+1) + "/Balance") , 100);                        
+    // Giveaway initial balance of 10$
+    Firebase.setInt(("Card" + String(totalCards+1) + "/Balance") , 10*ONE_DOLLAR_INR_PRICE);                        
   }
 }
 

@@ -41,6 +41,13 @@ static void openDoorLock() {
   digitalWrite(GREEN_LED, LOW);
 }
 
+// function to  charge for the parking as and settle the new balance
+static void charge_parking_and_settle_balance()
+{
+  // fuzzy business logic to 1$/hr :)
+  fuzzy_business_logic();
+}
+
 // function to grant the entry
 void grantEntry() {
   // Update the time client to fetch current date and time from NTP Server
@@ -68,8 +75,8 @@ void grantExit() {
   Firebase.setString(("Card" + String(cardCount) + "/Exit/Time") , timeClient.getFormattedTime());
   Firebase.setBool(("Card" + String(cardCount) + "/IsVehicleIn") , false);
   
-  // fuzzy business logic to charge some ammount :)
-  fuzzy_business_logic();
+  // charge for the parking as and settle the new balance
+  charge_parking_and_settle_balance();
 
   Serial.println("Thank you for parking you vehicle!");
   Serial.println();
@@ -92,3 +99,4 @@ void accessDenied() {
   Serial.println();
   digitalWrite(RED_LED, LOW);
 }
+
